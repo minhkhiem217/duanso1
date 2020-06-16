@@ -1,0 +1,180 @@
+﻿@model IList<ProjectSchedule>
+
+@{
+    ViewData["Title"] = Localizer["Schedules"];
+    var dateTimeNow = DateTime.Now;
+    Project project = ViewBag.Project;
+}
+
+<h1>@Localizer["Schedules"]- <a asp-action="Details" asp-route-id="@ViewBag.Project.Id">@ViewBag.Project.Title</a></h1>
+<hr />
+
+<div class="row">
+    <div class="col-lg-3 mb-lg-0 mb-3">
+        <div class="nav flex-column nav-pills" id="schedules-tab" role="tablist" aria-orientation="vertical">
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <a class="nav-link" id="week-@(i+1)-tab" data-toggle="pill" href="#week-@(i+1)" role="tab">@Model[i].Name</a>
+            }
+        </div>
+    </div>
+    <div class="col-lg-9">
+        <div class="tab-content" id="schedules-tab-content">
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <div class="tab-pane fade" id="week-@(i+1)" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <ul class="nav nav-tabs card-header-tabs">
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-toggle="tab" role="tab" href="#week-@(i+1)-details">@Localizer["Details"]</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-toggle="tab" role="tab" href="#week-@(i+1)-reports">@Localizer["Reports"]</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-toggle="tab" role="tab" href="#week-@(i+1)-comment">@Localizer["Comment"]</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <div class="tab-pane fade show active" id="week-@(i+1)-details" role="tabpanel">
+                                    <h2 class="card-title">
+                                        <a asp-action="ScheduleDetails" asp-route-projectId="@Model[i].ProjectId" asp-route-id="@Model[i].Id">
+                                            @Localizer["Schedule"] - @Model[i].Name
+                                        </a>
+                                    </h2>
+                                    <hr />
+
+                                    <dl class="row card-subtitle">
+                                        <dt class="col-sm-4">
+                                            @Localizer["Started Date"]
+                                        </dt>
+                                        <dd class="col-sm-8">
+                                            @Model[i].StartedDate
+                                        </dd>
+                                        <dt class="col-sm-4">
+                                            @Localizer["Expired Date"]
+                                        </dt>
+                                        <dd class="col-sm-8">
+                                            @Model[i].ExpiredDate
+                                        </dd>
+                                    </dl>
+                                    <h3 class="card-title">@Localizer["Content"]</h3>
+                                    <hr />
+
+                                    <div class="ck-content">
+                                        @Html.Raw(Model[i].Content)
+                                    </div>
+                                    @if (User.IsInRole("Lecturer"))
+                                    {
+                                        <a class="btn btn-warning btn-block @(!project.Status.IsEditable() ? "disabled": "")"
+                                           asp-action="Edit" asp-controller="ProjectSchedules" asp-route-id="@Model[i].Id">
+                                            @Localizer["Edit"]
+                                        </a>
+                                    }
+                                </div>
+
+                                <div class="tab-pane fade" id="week-@(i+1)-reports" role="tabpanel">
+                                    <h3 class="card-title">@Localizer["Reports"]</h3>
+                                    @if (User.IsInRole("Student"))
+                                    {
+                                        <a class="btn btn-primary btn-block @(dateTimeNow < Model[i].StartedDate || dateTimeNow > Model[i].ExpiredDate || !project.Status.IsReportable() ? "disabled" : "")"
+                                           asp-action="Create" asp-controller="ProjectScheduleReports" asp-route-scheduleId="@Model[i].Id">
+                                            @Localizer["New Report"]
+                                        </a>
+                                    }
+                                    <hr />
+
+                                    @foreach (var report in Model[i].ProjectScheduleReports)
+                                    {
+                                        <div class="mb-5">
+                                            <h4>@Localizer["Posted by: {0}", report.Student.StudentCode]</h4>
+                                            <dl class="row card-subtitle">
+                                                <dt class="col-sm-4">
+                                                    @Localizer["Posted Date"]
+                                                </dt>
+                                                <dd class="col-sm-8">
+                                                    @report.CreatedDate
+                                                </dd>
+                                                @if (report.CreatedDate != report.UpdatedDate)
+                                                {
+                                                    <dt class="col-sm-4">
+                                                        @Localizer["Last updated"]
+                                                    </dt>
+                                                    <dd class="col-sm-8">
+                                                        @report.UpdatedDate
+                                                    </dd>
+                                                }
+                                            </dl>
+                                            <hr />
+                                            @if (report.ReportFiles?.Count > 0)
+                                            {
+                                                <h5>@Localizer["Posted Files"]</h5>
+                                                @foreach (var file in report.ReportFiles)
+                                                {
+                                                    <a class="d-block" href="~/StaticFiles/Projects/@file.Path">@file.FileName</a>
+                                                }
+                                                <hr />
+                                            }
+                                            <div class="ck-content">
+                                                @Html.Raw(report.Content)
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="tab-pane fade" id="week-@(i+1)-comment" role="tabpanel">
+                                    <h3 class="card-title">@Localizer["Comment"]</h3>
+                                    <dl class="row card-subtitle">
+                                        <dt class="col-sm-4">
+                                            @Localizer["Rating"]
+                                        </dt>
+                                        <dd class="col-sm-8">
+                                            @(Model[i].Rating.HasValue ? Localizer["{0} point", Model[i].Rating] : Localizer["Not-yet"])
+                                        </dd>
+                                    </dl>
+                                    <hr />
+
+                                    <div class="ck-content">
+                                        @Html.Raw(Model[i].Comment)
+                                    </div>
+                                    @if (User.IsInRole("Lecturer"))
+                                    {
+                                        <a class="btn btn-success btn-block @(dateTimeNow < Model[i].ExpiredDate || Model[i].Rating.HasValue || !project.Status.IsEditable() ? "disabled": "")"
+                                           asp-action="Comment" asp-controller="ProjectSchedules" asp-route-id="@Model[i].Id">
+                                            @Localizer["Comment"]
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/ckeditor5/ckeditor.js"></script>
+    <script async defer type="text/javascript">
+        $(document).ready(function () {
+            var hash = location.hash;
+            if (hash == "" || !(/^#week-\d+/).test(hash)) {
+                $('a[href^="#week"]').first().tab('show');
+            }
+            else {
+                var week = hash.match(/^#week-\d+/)[0];
+                $(`a[href="${week}"]`).tab('show');
+                $(`a[href="${hash}"]`).tab('show');
+            }
+        });
+
+        document.querySelectorAll('oembed[url]').forEach(element => {
+            iframely.load(element, element.attributes.url.value);
+        });
+    </script>
+}

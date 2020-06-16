@@ -1,0 +1,382 @@
+﻿@{
+    ViewData["Title"] = Localizer["Statistics"];
+}
+
+<h1>@Localizer["Statistics"]</h1>
+
+<h2>@Localizer["Summary"]</h2>
+<hr />
+
+
+<div class="row">
+    <div class="col-12 col-lg-6 mb-3">
+        <div class="card">
+            <h5 class="card-header">@Localizer["Summary Types"]</h5>
+            <div class="card-body">
+                <form id="summary-form">
+                    <div class="form-group">
+                        <label>@Localizer["Semester"]</label>
+                        <select name="SemesterId" class="custom-select" asp-items="ViewBag.SemesterId">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-block">@Localizer["Fetch Summary"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6 mb-3">
+        <div class="card" id="summary-types">
+            <h5 class="card-header">@Localizer["Summary Types"]</h5>
+            <div class="card-body">
+                <h5 class="card-title"><span></span> @Localizer["types in Semester"]</h5>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["Type"]</th>
+                            <th>@Localizer["Count"]</th>
+                            <th>@Localizer["Percent"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-muted">
+                ...
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6 mb-3">
+        <div class="card" id="summary-statuses">
+            <h5 class="card-header">@Localizer["Summary Projects"]</h5>
+            <div class="card-body">
+                <h5 class="card-title"><span></span> @Localizer["projects in Semester"]</h5>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["Status"]</th>
+                            <th>@Localizer["Count"]</th>
+                            <th>@Localizer["Percent"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-muted">
+                ...
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6 mb-3">
+        <div class="card" id="summary-grading-points">
+            <h5 class="card-header">@Localizer["Summary Students"]</h5>
+            <div class="card-body">
+                <h5 class="card-title"><span></span> @Localizer["students in Semester"]</h5>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["Grade"]</th>
+                            <th>@Localizer["Count"]</th>
+                            <th>@Localizer["Percent"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-muted">
+                ...
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="text-primary">@Localizer["Charts"]</h2>
+<hr />
+
+<div class="card" id="schedules-by-weeks-card">
+    <h3 class="card-header text-center">@Localizer["Project schedules by weeks"]</h3>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12 col-lg-4 mb-3">
+                <h4>@Localizer["Filter"]</h4>
+                <form id="schedules-by-weeks-filter-form">
+                    <div class="form-group">
+                        <label>@Localizer["Semester"]</label>
+                        <select name="SemesterId" class="custom-select" asp-items="ViewBag.SemesterId">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>@Localizer["Statuses"]</label>
+                        @{
+                            IEnumerable<SelectListItem> projectStatuses = ViewBag.ProjectStatuses;
+                            var statusIndex = 1;
+                        }
+                        @foreach (var option in projectStatuses)
+                        {
+                            <div class="custom-control custom-checkbox">
+                                <input name="ProjectStatuses" type="checkbox" class="custom-control-input" id="status-@statusIndex" value="@option.Value">
+                                <label class="custom-control-label" for="status-@statusIndex">@option.Text</label>
+                            </div>
+                            statusIndex++;
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label>@Localizer["Prev Weeks"]</label>
+                        <input class="form-control" type="number" name="PrevWeeks" value="4" min="1" max="24" required />
+                    </div>
+                    <div class="form-group">
+                        <label>@Localizer["To Date"]</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend" id="begin-week-group">
+                                <div class="input-group-text">
+                                    <input name="IsBeginWeekMonday" type="checkbox" checked="checked">
+                                </div>
+                                <span class="input-group-text">Monday</span>
+                            </div>
+                            <input class="form-control" type="date" name="ToDate" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <button type="button" name="btn-start" class="btn btn-success btn-block">@Localizer["Start"]</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <button type="button" name="btn-stop" class="btn btn-danger btn-block">@Localizer["Stop"]</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-12 col-lg-8 mb-3">
+                <h4>@Localizer["Chart"]</h4>
+                <canvas id="schedules-by-weeks-chart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer text-muted">
+        ...
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var globalLoopTime = 10000;
+        var intervalIds = {};
+        var charts = {};
+
+        function startInterval(key, callback, loopTime) {
+            intervalIds[key] = setInterval(callback, loopTime);
+        }
+
+        function stopInterval(key) {
+            if (intervalIds[key]) {
+                clearInterval(intervalIds[key]);
+            }
+        }
+
+        function fetchSummary() {
+            var selectedSemester = form.find('select[name="SemesterId"]').val();
+            $.get('/Statistics/Summary', { "semesterId": selectedSemester })
+                .done(data => {
+                    var dateNow = new Date();
+                    var date = `Last update: ${dateNow.toLocaleDateString()} ${dateNow.toLocaleTimeString()}`;
+                    const { statuses, types, gradingPoints } = data;
+                    //Statuses
+                    var cardStatuses = $('#summary-statuses');
+                    cardStatuses.find('.card-title span').text(statuses.reduce((total, currentValue) => total += currentValue.count, 0));
+                    var tbodyStatuses = "";
+                    statuses.forEach(s =>
+                        tbodyStatuses +=
+                        `<tr class="${s.tableBackGroundColor}"><th>${s.status}</th><td>${s.count}</td><td>${s.percent}%</td></tr>`
+                    );
+                    cardStatuses.find('table tbody').html(tbodyStatuses);
+                    cardStatuses.find('.card-footer').text(date);
+
+                    //Types
+                    var cardTypes = $('#summary-types');
+                    cardTypes.find('.card-title span').text(types.length);
+                    var tbodyTypes = "";
+                    types.forEach(t =>
+                        tbodyTypes +=
+                        `<tr><th>${t.name}</th><td>${t.count}</td><td>${t.percent}%</td></tr>`
+                    );
+                    cardTypes.find('table tbody').html(tbodyTypes);
+                    cardTypes.find('.card-footer').text(date);
+
+                    //Grading Points
+                    var cardGradingPoints = $('#summary-grading-points');
+                    cardGradingPoints.find('.card-title span').text(gradingPoints.reduce((total, currentValue) => total += currentValue.count, 0));
+                    var tbodyGradingPoints = "";
+                    gradingPoints.forEach(gp =>
+                        tbodyGradingPoints +=
+                        `<tr><th>${gp.name}</th><td>${gp.count}</td><td>${gp.percent}%</td></tr>`
+                    );
+                    cardGradingPoints.find('table tbody').html(tbodyGradingPoints);
+                    cardGradingPoints.find('.card-footer').text(date);
+                })
+                .catch(err => {
+                    console.error(err);
+                });
+        }
+
+        function addLabel(chart, label) {
+            chart.data.labels.push(label);
+            chart.update();
+        }
+
+        function addData(chart, data, index) {
+            chart.data.datasets[index].data.push(data);
+            chart.update();
+        }
+
+        function removeData(chart) {
+            chart.data.labels.pop();
+            chart.data.datasets.forEach((dataset) => {
+                dataset.data.pop();
+            });
+            chart.update();
+        }
+
+
+        function fetchSchedulesByWeeksChart() {
+            var query = {
+                "SemesterId": schedulesByWeeksFilterForm.find('select[name="SemesterId"]').val(),
+                "ProjectStatuses": schedulesByWeeksFilterForm.find('input[name="ProjectStatuses"]').serializeArray().map(item => item.value),
+                "PrevWeeks": schedulesByWeeksFilterForm.find('input[name="PrevWeeks"]').val(),
+                "ToDate": schedulesByWeeksFilterForm.find('input[name="ToDate"]').val(),
+                "IsBeginWeekMonday": schedulesByWeeksFilterForm.find('input[name="IsBeginWeekMonday"]').is(':checked')
+            }
+
+            $.ajax({
+                url: '/Statistics/SchedulesByWeeks',
+                type: 'GET',
+                data: query,
+                traditional: true,
+                contentType: 'application/json',
+                dataType: 'json'
+            })
+                .done(data => {
+                    var dateNow = new Date();
+                    var date = `Last update: ${dateNow.toLocaleDateString()} ${dateNow.toLocaleTimeString()}`;
+                    console.log(data);
+                    var currentChart = charts['schedules-by-weeks-chart'];
+                    var chartLength = currentChart.chart.data.labels.length;
+                    for (var i = 0; i < chartLength; i++) {
+                        removeData(currentChart);
+                    }
+
+                    var length = data.length;
+                    for (var i = 0; i < length; i++) {
+                        let label = new Date(data[i].date).toLocaleDateString();
+                        addLabel(currentChart, label);
+                        addData(currentChart, data[i].count, 0);
+                        addData(currentChart, data[i].reportsCount, 1);
+                        addData(currentChart, data[i].commentsCount, 2);
+                        addData(currentChart, data[i].reportsTotal, 3);
+                    }
+
+                    $('#schedules-by-weeks-card .card-footer').text(date);
+                })
+                .catch(err => {
+                    console.error(err);
+                });
+        }
+    </script>
+    <script type="text/javascript" src="~/chartjs/Chart.min.js"></script>
+    <script async defer>
+        var form = $('#summary-form');
+        var schedulesByWeeksFilterForm = $('#schedules-by-weeks-filter-form');
+        var benginWeekGroup = $('#begin-week-group');
+
+        form.submit(function (event) {
+            event.preventDefault();
+            fetchSummary();
+            fetchSchedulesByWeeksChart();
+        });
+
+        charts['schedules-by-weeks-chart'] = new Chart(document.getElementById('schedules-by-weeks-chart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: Array(4).fill(" "),
+                datasets: [{
+                    label: 'Schedules Total',
+                    data: Array(4).fill(30),
+                    backgroundColor:
+                        'rgba(255, 99, 132, 0.2)'
+                },
+                {
+                    label: '# of Reports',
+                    data: Array(4).fill(10),
+                    backgroundColor:
+                        'rgba(54, 162, 235, 0.2)'
+                },
+                {
+                    label: '# of Comments',
+                    data: Array(4).fill(5),
+                    backgroundColor:
+                        'rgba(255, 206, 86, 0.2)'
+                }, {
+                    label: '# of Reports Count',
+                    data: Array(4).fill(50),
+                    backgroundColor:
+                        'rgba(75, 192, 192, 0.2)'
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            stepSize: 1,
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+
+        $(document).ready(function () {
+            fetchSummary();
+            schedulesByWeeksFilterForm.find('button[name="btn-start"]').attr('disabled', 'disabled');
+            fetchSchedulesByWeeksChart();
+            startInterval('schedules-by-weeks-chart', () => fetchSchedulesByWeeksChart(), globalLoopTime);
+        });
+
+        schedulesByWeeksFilterForm.find('button[name="btn-start"]').click(function (event) {
+            event.preventDefault();
+            fetchSchedulesByWeeksChart();
+            startInterval('schedules-by-weeks-chart', () => fetchSchedulesByWeeksChart(), globalLoopTime);
+
+            schedulesByWeeksFilterForm.find('button[name="btn-start"]').attr('disabled', 'disabled');
+            setTimeout(() => {
+                schedulesByWeeksFilterForm.find('button[name="btn-stop"]').removeAttr('disabled');
+            }, 1000);
+        });
+
+        schedulesByWeeksFilterForm.find('button[name="btn-stop"]').click(function (event) {
+            event.preventDefault();
+            stopInterval('schedules-by-weeks-chart');
+
+            schedulesByWeeksFilterForm.find('button[name="btn-stop"]').attr('disabled', 'disabled');
+            setTimeout(() => {
+                schedulesByWeeksFilterForm.find('button[name="btn-start"]').removeAttr('disabled');
+            }, 1000);
+        });
+
+        benginWeekGroup.find('input[name="IsBeginWeekMonday"]').first().change(function (event) {
+            var content = $(this).is(':checked') ? 'Monday' : 'Sunday';
+            benginWeekGroup.find('span.input-group-text').text(content);
+        });
+    </script>
+}
+
